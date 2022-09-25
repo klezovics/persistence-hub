@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import javax.persistence.EntityManager
 
 @DataJpaTest
 class PostRepositoryTest {
@@ -18,6 +19,9 @@ class PostRepositoryTest {
 
     @Autowired
     lateinit var tagRepository: TagRepository
+
+    @Autowired
+    lateinit var em: EntityManager
 
     @Test
     fun `test can save and load entity graph`() {
@@ -32,6 +36,8 @@ class PostRepositoryTest {
         }.also {
             postRepository.save(it)
         }.id!!
+
+        em.flush()
 
         postRepository.findById(id).get().run {
             assertEquals("Ban Hibernate", text)
@@ -61,6 +67,8 @@ class PostRepositoryTest {
         p2.addTag(t2)
 
         val ids = postRepository.saveAll(listOf(p1,p2)).map { it.id }
+
+        em.flush()
 
         ids.first().also {
             postRepository.findById(it!!).get().run {

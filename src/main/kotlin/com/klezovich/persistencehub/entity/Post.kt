@@ -12,7 +12,7 @@ import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity
-@Table(name = "comment")
+@Table(name = "post")
 open class Post {
 
     constructor()
