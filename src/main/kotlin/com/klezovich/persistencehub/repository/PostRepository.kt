@@ -6,4 +6,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface PostRepository : JpaRepository<Post, Long> {
+
+
+    fun findAllByOrderByTextDesc(): List<Post>
+
 }

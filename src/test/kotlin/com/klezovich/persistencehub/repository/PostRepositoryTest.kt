@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.domain.Sort.TypedSort
 import javax.persistence.EntityManager
 import javax.transaction.Transactional
 
@@ -23,6 +24,27 @@ class PostRepositoryTest {
 
     @Autowired
     lateinit var em: EntityManager
+
+    @Test
+    fun `test can return sorted results`() {
+        listOf(
+            Post().apply { text = "1" },
+            Post().apply { text = "2" },
+            Post().apply { text = "3" }
+        ).also {
+            postRepository.saveAll(it)
+        }
+
+        postRepository.findAll(TypedSort.sort(Post::class.java).by(Post::text).ascending()).also {
+            assertEquals(3, it.size)
+            assertEquals(listOf("1","2","3"), it.map { it.text })
+        }
+
+        postRepository.findAllByOrderByTextDesc().also {
+            assertEquals(3, it.size)
+            assertEquals(listOf("3","2","1"), it.map { it.text })
+        }
+    }
 
     @Test
     fun `test can save and load entity graph`() {
@@ -81,12 +103,8 @@ class PostRepositoryTest {
 
         tagRepository.saveAll(listOf(t1,t2))
 
-        val p1 = Post("P1")
-        val p2 = Post("P2")
-
-        p1.addTag(t1)
-        p2.addTag(t1)
-        p2.addTag(t2)
+        val p1 = Post("P1").apply { addTag(t1) }
+        val p2 = Post("P2").apply { addTag(t1); addTag(t2) }
 
         val ids = postRepository.saveAll(listOf(p1,p2)).map { it.id }
 
