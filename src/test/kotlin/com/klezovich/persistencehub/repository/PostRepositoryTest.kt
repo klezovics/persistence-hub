@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import javax.persistence.EntityManager
+import javax.transaction.Transactional
 
 @DataJpaTest
 class PostRepositoryTest {
@@ -51,6 +52,27 @@ class PostRepositoryTest {
             }
         }
     }
+
+    @Test
+    fun testEditInTransaction() {
+        val id = Post().apply { text = "Initial text" }.also { postRepository.save(it) }.id!!
+        doInTransaction(id)
+
+        postRepository.findById(id).get().let {
+            assertEquals("AUTO FLUSH TEXT", it.text)
+        }
+    }
+
+
+    @Transactional(value = Transactional.TxType.REQUIRES_NEW)
+    fun doInTransaction(postId: Long) {
+        postRepository.findById(postId).get().apply {
+            text = "AUTO FLUSH TEXT"
+        }.also {
+            // postRepository.save(it)
+        }
+    }
+
 
     @Test
     fun `test can save posts and tags`() {
